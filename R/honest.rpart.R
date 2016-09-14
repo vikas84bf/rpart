@@ -258,7 +258,7 @@ honest.rpart <-
 
     where <- rpfit$which
     names(where) <- row.names(m)
-
+    print("end of honest.rpart tree growing,before ans")
     ans <- list(frame = frame,
              where = where,
              call = Call, terms = Terms,
@@ -286,5 +286,5 @@ honest.rpart <-
     if (method == "class") attr(ans, "ylevels") <- init$ylevels
     class(ans) <- "rpart"
     ans
-    print("end of honest.rpart tree growing")
+    
 }

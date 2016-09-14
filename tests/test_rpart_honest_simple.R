@@ -11,7 +11,7 @@ library(rpart)
 library(rpart.plot)
 #install_github("susanathey/causalTree")
 # install_github("vikas84bf/causalTree",ref="optimalPolicy")
-library(causalTree)
+# library(causalTree)
 library(reshape2)
 library(plyr)
 #
