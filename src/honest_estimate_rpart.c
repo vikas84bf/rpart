@@ -30,7 +30,8 @@ static void
 honest_estimate_rpart0(const int *dimx, int nnode, int nsplit, const int *dimc,
 	    const int *nnum, const int *nodes2, const int *vnum,
 	    const double *split2, const int *csplit2, const int *usesur,
-	    const double *xdata2, const int *xmiss2, int *where)
+	    int *n1, double *wt1, double *dev1, double *yval1,
+	    const double *xdata2,const double *wt2,const double *y2, const int *xmiss2, int *where)
 {
     int i, j;
     int n;
@@ -43,10 +44,58 @@ honest_estimate_rpart0(const int *dimx, int nnode, int nsplit, const int *dimc,
     const double *split[4];
     const int **csplit = NULL, **xmiss;
     const double **xdata;
+///
 
+double *trs = NULL;
+double *cons = NULL; 
+double *trsums = NULL; 
+double *consums = NULL;
+double *trsqrsums = NULL;
+double *consqrsums = NULL;
+int nnodemax = -1;
+int *invertdx = NULL;
+
+trs = (double *) ALLOC(nnode, sizeof(double));
+cons = (double *) ALLOC(nnode, sizeof(double));
+trsums = (double *) ALLOC(nnode, sizeof(double));
+consums = (double *) ALLOC(nnode, sizeof(double));
+trsqrsums = (double *) ALLOC(nnode, sizeof(double));
+consqrsums = (double *) ALLOC(nnode, sizeof(double));
+
+// initialize:
+for (i = 0; i < nnode; i++) {
+  trs[i] = 0.;
+  cons[i] = 0.;
+  trsums[i] = 0.;
+  consums[i] = 0.;
+  trsqrsums[i] = 0.;
+  consqrsums[i] = 0.;
+  n1[i] = 0;
+  wt1[i] = 0.;
+  if (nnum[i] > nnodemax) {
+    nnodemax = nnum[i]; 
+  }
+}
+
+invertdx = (int *) ALLOC(nnodemax + 1, sizeof(int));
+// construct an invert index:
+for (i = 0; i <= nnodemax + 1; i++) {
+  invertdx[i] = -1;
+}
+for (i = 0; i != nnode; i++) {
+  invertdx[nnum[i]] = i;
+}
+
+
+/*n = dimx[0]; // n = # of obs
+for (i = 0; i < 3; i++) {
+  nodes[i] = &(nodes2[nnode * i]);
+}*/
+
+///
     n = dimx[0];
     for (i = 0; i < 4; i++) {
-	nodes[i] = &(nodes2[nnode * i]);
+	nodes[i] = &(nodes2[nnode * i]); //tbd: change this to above from causaltree?
 	split[i] = &(split2[nsplit * i]);
     }
 
@@ -66,6 +115,17 @@ honest_estimate_rpart0(const int *dimx, int nnode, int nsplit, const int *dimc,
 	node = 1;               /* current node of the tree */
 next:
 	for (npos = 0; nnum[npos] != node; npos++);  /* position of the node */
+  
+  n1[npos]++;
+  wt1[npos] += wt2[i];
+  trs[npos] += wt2[i];
+  cons[npos] += wt2[i];
+  trsums[npos] += wt2[i]* y2[i];
+  consums[npos] += wt2[i]* y2[i];
+  trsqrsums[npos] +=  wt2[i]* y2[i] * y2[i];
+  consqrsums[npos] += wt2[i] * y2[i] * y2[i];
+  
+  
        /* walk down the tree */
 	nspl = nodes[3][npos] - 1;      /* index of primary split */
 	if (nspl >= 0) {        /* not a leaf node */
@@ -112,9 +172,11 @@ next:
 	    }
 	    if (*usesur > 1) {  /* go with the majority */
 		for (j = 0; nnum[j] != (2 * node); j++);
-		lcount = nodes[0][j];
+		//lcount = nodes[0][j];
+		lcount=n1[j];
 		for (j = 0; nnum[j] != (1 + 2 * node); j++);
-		rcount = nodes[0][j];
+		//rcount = nodes[0][j];
+		rcount=n1[j];
 		if (lcount != rcount) {
 		    if (lcount > rcount)
 			node = 2 * node;
@@ -124,8 +186,28 @@ next:
 		}
 	    }
 	}
-	where[i] = npos + 1;
+	where[i] = node; //npos + 1;
     }
+    //change yval1,dev1 to rpart terms
+    for (i = 0; i <= nnodemax; i++) {
+      if (invertdx[i] == -1)
+        continue;
+      int origindx = invertdx[i];
+      //base case
+      if (trs[origindx] != 0 && cons[origindx] != 0) {
+        double tr_mean = trsums[origindx] * 1.0 / trs[origindx];
+        double con_mean = consums[origindx] * 1.0 / cons[origindx];
+        yval1[origindx] = tr_mean - con_mean;
+        dev1[origindx] = trsqrsums[origindx] - trs[origindx] * tr_mean * tr_mean 
+          + consqrsums[origindx] - cons[origindx] * con_mean * con_mean;
+      } else {
+        int parentdx = invertdx[i / 2];
+        yval1[origindx] = yval1[parentdx];
+        dev1[origindx] = yval1[parentdx];
+      }
+    }
+    
+    
 }
 
 #include <Rinternals.h>
