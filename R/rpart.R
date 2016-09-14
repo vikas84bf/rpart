@@ -286,5 +286,5 @@ rpart <-
     if (method == "class") attr(ans, "ylevels") <- init$ylevels
     class(ans) <- "rpart"
     ans
-    print("debug:end of rpart")
+    print("debug:end of rpart ***")
 }
