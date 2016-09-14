@@ -197,9 +197,9 @@ next:
       if (trs[origindx] != 0 && cons[origindx] != 0) {
         double tr_mean = trsums[origindx] * 1.0 / trs[origindx];
         double con_mean = consums[origindx] * 1.0 / cons[origindx];
-        yval1[origindx] = tr_mean - con_mean;
-        dev1[origindx] = trsqrsums[origindx] - trs[origindx] * tr_mean * tr_mean 
-          + consqrsums[origindx] - cons[origindx] * con_mean * con_mean;
+        yval1[origindx] = tr_mean; // - con_mean;
+        dev1[origindx] = trsqrsums[origindx] - trs[origindx] * tr_mean * tr_mean; 
+          //+ consqrsums[origindx] - cons[origindx] * con_mean * con_mean;
       } else {
         int parentdx = invertdx[i / 2];
         yval1[origindx] = yval1[parentdx];
