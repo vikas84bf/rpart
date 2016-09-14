@@ -328,7 +328,7 @@ honest.rpart <-
     if(ncol(ans$cptable) >= 4) {
       ans$cptable[,4]  <- ans$cptable[,4] / ans$cptable[1, 4]
     }
-    # ans <- honest.est.rpart(ans, est_X, est_wts, est_Y)
+    ans <- honest.est.rpart(ans, est_X, est_wts, est_Y)
     
     ans
     
