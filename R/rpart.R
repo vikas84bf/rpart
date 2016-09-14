@@ -258,7 +258,7 @@ rpart <-
 
     where <- rpfit$which
     names(where) <- row.names(m)
-
+    print("debug:end of rpart ***")
     ans <- list(frame = frame,
              where = where,
              call = Call, terms = Terms,
@@ -286,5 +286,5 @@ rpart <-
     if (method == "class") attr(ans, "ylevels") <- init$ylevels
     class(ans) <- "rpart"
     ans
-    print("debug:end of rpart ***")
+
 }

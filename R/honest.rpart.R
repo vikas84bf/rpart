@@ -2,7 +2,7 @@
 #  The recursive partitioning function, for R
 #
 honest.rpart <-
-    function(formula, data, weights, subset, na.action = na.rpart, method,
+    function(formula, data, weights, subset, est_data,est_weights, na.action = na.rpart, method,
              model = FALSE, x = FALSE, y = TRUE, parms, control, cost, ...)
 {
     Call <- match.call()
@@ -31,7 +31,47 @@ honest.rpart <-
     X <- rpart.matrix(m)
     nobs <- nrow(X)
     nvar <- ncol(X)
+###
 
+    if (missing(est_data)) {
+      stop("Note give the honest estimation data set!\n")
+    }
+    
+    indx2 <- match(c("formula", "est_data", "est_weights", "est_subset"),
+                   names(Call), nomatch = 0L)
+    
+    temp2 <- Call[c(1L, indx2)]
+    temp2$na.action <- na.action
+    names(temp2) <- gsub("est_", "", names(temp2))
+    temp2[[1L]] <- quote(stats::model.frame)
+    m2 <- eval.parent(temp2)
+    # honest data set used for later:
+    est_Y <- model.response(m2)
+    est_wts <- model.weights(m2)
+    if (any(est_wts < 0)) stop("negative weights not allowed")
+    if (!length(est_wts)) est_wts <- rep(1, nrow(m2))
+    est_offset <- model.offset(m2)
+    est_X <- rpart.matrix(m2)
+    est_nobs <- nrow(est_X)
+    est_nvar <- ncol(est_X)
+    
+    # if (missing(est_treatment)) {
+    #   stop("Not give the treatment status of honest estimation data set!\n ")
+    # }
+    # if (sum(est_treatment %in% c(0,1)) != est_nobs) {
+    #   stop("The treatment status should be 1 or 0 only: 1 represent treated and 0 represent controlled.")
+    # }
+    # if (sum(est_treatment) == 0 || sum(est_treatment) == est_nobs) {
+    #   stop("The data only contains treated cases or controlled cases, please check 'est_treatment' again.") 
+    # }
+    # 
+    
+    if (est_nvar != nvar) {
+      stop("Honest estimation data set should have same variables as training data!\n")
+    }
+    
+    print("done setting estimation data")
+###
     if (missing(method)) {
 	method <- if (is.factor(Y) || is.character(Y)) "class"
         else if (inherits(Y, "Surv")) "exp"
@@ -285,6 +325,11 @@ honest.rpart <-
     if (!is.null(xlevels)) attr(ans, "xlevels") <- xlevels
     if (method == "class") attr(ans, "ylevels") <- init$ylevels
     class(ans) <- "rpart"
+    if(ncol(ans$cptable) >= 4) {
+      ans$cptable[,4]  <- ans$cptable[,4] / ans$cptable[1, 4]
+    }
+    # ans <- honest.est.rpart(ans, est_X, est_wts, est_Y)
+    
     ans
     
 }
