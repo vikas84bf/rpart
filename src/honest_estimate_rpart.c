@@ -45,7 +45,7 @@ honest_estimate_rpart0(const int *dimx, int nnode, int nsplit, const int *dimc,
     const int **csplit = NULL, **xmiss;
     const double **xdata;
 ///
-
+Rprintf("inside honest C code fn: 1\n");
 double *trs = NULL;
 double *cons = NULL; 
 double *trsums = NULL; 
@@ -61,6 +61,7 @@ trsums = (double *) ALLOC(nnode, sizeof(double));
 consums = (double *) ALLOC(nnode, sizeof(double));
 trsqrsums = (double *) ALLOC(nnode, sizeof(double));
 consqrsums = (double *) ALLOC(nnode, sizeof(double));
+Rprintf("inside honest C code fn: 2\n");
 
 // initialize:
 for (i = 0; i < nnode; i++) {
@@ -76,6 +77,7 @@ for (i = 0; i < nnode; i++) {
     nnodemax = nnum[i]; 
   }
 }
+Rprintf("inside honest C code fn: 3\n");
 
 invertdx = (int *) ALLOC(nnodemax + 1, sizeof(int));
 // construct an invert index:
@@ -85,6 +87,7 @@ for (i = 0; i <= nnodemax + 1; i++) {
 for (i = 0; i != nnode; i++) {
   invertdx[nnum[i]] = i;
 }
+Rprintf("inside honest C code fn: 4\n");
 
 
 /*n = dimx[0]; // n = # of obs
@@ -98,7 +101,8 @@ for (i = 0; i < 3; i++) {
 	nodes[i] = &(nodes2[nnode * i]); //tbd: change this to above from causaltree?
 	split[i] = &(split2[nsplit * i]);
     }
-
+    Rprintf("inside honest C code fn: 5\n");
+    
     if (dimc[1] > 0) {
 	csplit = (const int **) ALLOC((int) dimc[1], sizeof(int *));
 	for (i = 0; i < dimc[1]; i++)
@@ -110,7 +114,8 @@ for (i = 0; i < 3; i++) {
 	xmiss[i] = &(xmiss2[i * dimx[0]]);
 	xdata[i] = &(xdata2[i * dimx[0]]);
     }
-
+    Rprintf("inside honest C code fn: 6\n");
+    
     for (i = 0; i < n; i++) {
 	node = 1;               /* current node of the tree */
 next:
@@ -125,6 +130,7 @@ next:
   trsqrsums[npos] +=  wt2[i]* y2[i] * y2[i];
   consqrsums[npos] += wt2[i] * y2[i] * y2[i];
   
+  Rprintf("inside honest C code fn: 7\n");
   
        /* walk down the tree */
 	nspl = nodes[3][npos] - 1;      /* index of primary split */
@@ -148,6 +154,8 @@ next:
 		}
 	    }
 	    if (*usesur > 0) {
+	      Rprintf("inside honest C code fn: 8\n");
+	      
 		for (j = 0; j < nodes[2][npos]; j++) {
 		    nspl = nodes[1][npos] + nodes[3][npos] + j;
 		    var = vnum[nspl] - 1;
@@ -171,6 +179,8 @@ next:
 		}
 	    }
 	    if (*usesur > 1) {  /* go with the majority */
+       Rprintf("inside honest C code fn: 9\n");
+	      
 		for (j = 0; nnum[j] != (2 * node); j++);
 		//lcount = nodes[0][j];
 		lcount=n1[j];
@@ -188,6 +198,8 @@ next:
 	}
 	where[i] = node; //npos + 1;
     }
+    Rprintf("inside honest C code fn: 10\n");
+    
     //change yval1,dev1 to rpart terms
     for (i = 0; i <= nnodemax; i++) {
       if (invertdx[i] == -1)
@@ -206,6 +218,7 @@ next:
         dev1[origindx] = yval1[parentdx];
       }
     }
+    Rprintf("inside honest C code fn: 11\n");
     
     
 }
