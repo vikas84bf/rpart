@@ -219,6 +219,7 @@ honest_estimate_rpart(SEXP dimx, SEXP nnode, SEXP nsplit, SEXP dimc,
 	   SEXP csplit2, SEXP usesur, SEXP xdata2, SEXP wt2, SEXP y2,
 	   SEXP xmiss2)
 {
+    Rprintf("inside honest C code wrapper fn\n");
     int n = asInteger(dimx);
     SEXP where = PROTECT(allocVector(INTSXP, n));
     honest_estimate_rpart0(INTEGER(dimx), asInteger(nnode), asInteger(nsplit),
