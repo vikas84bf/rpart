@@ -328,6 +328,8 @@ honest.rpart <-
     if(ncol(ans$cptable) >= 4) {
       ans$cptable[,4]  <- ans$cptable[,4] / ans$cptable[1, 4]
     }
+    #save 
+    save(list="ans","est_X","est_wts","est_Y",file="test1_honest_rpart_before_est_call.rData")
     ans <- honest.est.rpart(ans, est_X, est_wts, est_Y)
     
     ans
